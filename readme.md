@@ -2,13 +2,11 @@
 
 as of current, my code only renders a square
 
-### project structure
-/exe -> a folder for dll files and exe file
-/resources -> a folder for shaders and textures
-/src -> source code
-    /src/app.h -> defines everything in my project except for static variables
-    /src/main.c -> everything related to window handling and graphics programming
-    /src/utilities.c -> file reading and debugging functions
+### src structure
+`includes.h` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
+`main.h` -> WinMain, window handling, main loop and everything that is yet to be abstracted
+`/vertex` -> vertex and index buffer handling
+`/shaders` -> everything related to reading, compiling and linking shaders
 
 ### compilation
 the setup my bat file was made for consists of installing [UCRT runtime](https://winlibs.com/) and [glew precompiled binaries](https://glew.sourceforge.net/) to C:\, then adding mingw's bin to path
