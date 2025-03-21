@@ -1,10 +1,14 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 set COMPILER=gcc
 set OUTPUT=exe\main.exe
 
-set SOURCES=src\main.c src\vertex\vertex_buffer.c src\vertex\index_buffer.c src\shaders\shaders.c src\error\error.c
+set SOURCES =
+for /R src %%f in (*.c) do (
+    set sources=!sources! "%%f"
+)
+
 set INCLUDES=-I"C:\glew-2.1.0\include"
 set LIBRARIES=-L"C:\glew-2.1.0\lib\Release\x64"
 set FLAGS=-lopengl32 -lglew32 -lgdi32 -Wall

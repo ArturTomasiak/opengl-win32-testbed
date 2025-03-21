@@ -1,4 +1,11 @@
-#include "main.h"
+#include "window.h"
+
+static const char* application_name = "Demi";
+static const char* wc_class_name = "Demi";
+static HINSTANCE hinstance;
+static WNDCLASSEX wc = {0};
+static HWND hwnd;
+static HDC hdc;
 
 int32_t CALLBACK WinMain(
     HINSTANCE hinstance,
@@ -6,47 +13,9 @@ int32_t CALLBACK WinMain(
     LPSTR lp_cmd_line,
     int32_t n_cmd_show 
 ) {
-    const char* application_name = "Demi";
-    const char* wc_class_name = "Demi";
-    WNDCLASSEX wc = {0};
-    wc.cbSize = sizeof(wc);
-    wc.style = CS_OWNDC;
-    wc.lpfnWndProc = WndProc;
-    wc.hInstance = hinstance;
-    wc.lpszClassName = wc_class_name;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    RegisterClassEx(&wc);
-    HWND hwnd = CreateWindowEx(
-        0, wc_class_name, application_name, 
-        WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 
-        200, 200, 640, 480, 0, 0, hinstance, 0 
-    );
-    ShowWindow(hwnd, SW_SHOW);
-
-    HDC hdc = GetDC(hwnd);
-    PIXELFORMATDESCRIPTOR pfd = {
-        sizeof(PIXELFORMATDESCRIPTOR),
-        1,
-        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 
-        PFD_TYPE_RGBA,
-        32,
-        0, 0, 0, 0, 0, 0,
-        0,
-        0,  
-        0,
-        0, 0, 0, 0,
-        24,
-        8,
-        0,
-        PFD_MAIN_PLANE,
-        0,
-        0, 0, 0
-    };
-    int32_t pixel_format = ChoosePixelFormat(hdc, &pfd);
-    SetPixelFormat(hdc, pixel_format, &pfd);
-    HGLRC temp_context = wglCreateContext(hdc);
-    wglMakeCurrent(hdc, temp_context);
-
+    create_window();
+    hdc = GetDC(hwnd);
+    HGLRC temp_context = create_temp_context();
     enable_vsync();
 
     glewExperimental = GL_TRUE;
@@ -58,20 +27,8 @@ int32_t CALLBACK WinMain(
         return -1;
     }
 
-    const int attribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0
-    };
-    HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
-    if (!hglrc) {
-        fatal(__LINE__, __FILE__, "Failed to create OpenGL 3.3+ core profile context");
-        DestroyWindow(hwnd);
-        return -1;
-    }
+    HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
-    wglMakeCurrent(hdc, hglrc);
 
     uint32_t vertex_array;
     glGenVertexArrays(1, &vertex_array);
@@ -135,10 +92,10 @@ int32_t CALLBACK WinMain(
     delete_vertex_buffer(&vb);
     delete_index_buffer(&ib);
     glDeleteProgram(shader);
-    DestroyWindow(hwnd);
     wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(temp_context);
+    wglDeleteContext(hglrc);
     ReleaseDC(hwnd, hdc);
+    DestroyWindow(hwnd);
     return msg.wParam;
 }
 
@@ -162,4 +119,64 @@ void enable_vsync() {
         __wglewSwapIntervalEXT(1);
     else
         warning(__LINE__, __FILE__, "wglSwapIntervalEXT not supported");
+}
+
+void create_window() {
+    wc.cbSize = sizeof(wc);
+    wc.style = CS_OWNDC;
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = hinstance;
+    wc.lpszClassName = wc_class_name;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    RegisterClassEx(&wc);
+    hwnd = CreateWindowEx(
+        0, wc_class_name, application_name, 
+        WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 
+        200, 200, 640, 480, 0, 0, hinstance, 0 
+    );
+    ShowWindow(hwnd, SW_SHOW);
+}
+
+HGLRC create_temp_context() {
+    PIXELFORMATDESCRIPTOR pfd = {
+        sizeof(PIXELFORMATDESCRIPTOR),
+        1,
+        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER, 
+        PFD_TYPE_RGBA,
+        32,
+        0, 0, 0, 0, 0, 0,
+        0,
+        0,  
+        0,
+        0, 0, 0, 0,
+        24,
+        8,
+        0,
+        PFD_MAIN_PLANE,
+        0,
+        0, 0, 0
+    };
+    int32_t pixel_format = ChoosePixelFormat(hdc, &pfd);
+    SetPixelFormat(hdc, pixel_format, &pfd);
+    HGLRC temp_context = wglCreateContext(hdc);
+    wglMakeCurrent(hdc, temp_context);
+    return temp_context;
+}
+
+HGLRC create_context() {
+    const int attribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0
+    };
+    HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
+    if (!hglrc) {
+        fatal(__LINE__, __FILE__, "Failed to create OpenGL 3.3+ core profile context");
+        ReleaseDC(hwnd, hdc);
+        DestroyWindow(hwnd);
+        ExitProcess(0);
+    }
+    wglMakeCurrent(hdc, hglrc);
+    return hglrc;
 }
