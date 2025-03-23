@@ -1,5 +1,10 @@
 #include "window.h"
 
+static void enable_vsync();
+static void create_window();
+static HGLRC create_temp_context();
+static HGLRC create_context();
+
 static const char* application_name = "Demi";
 static const char* wc_class_name = "Demi";
 static HINSTANCE hinstance;
@@ -29,10 +34,6 @@ int32_t CALLBACK WinMain(
 
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
-
-    uint32_t vertex_array;
-    glGenVertexArrays(1, &vertex_array);
-    glBindVertexArray(vertex_array);
     
     float vertex_positions[8] = {
         -0.5f, -0.5f, 
@@ -45,11 +46,14 @@ int32_t CALLBACK WinMain(
         2, 3, 0
     };
 
-    vertex_buffer vb = create_vertex_buffer(vertex_positions, 4 * 2 * sizeof(float));
-    index_buffer ib = create_index_buffer(vertex_indecies, 6 * sizeof(uint32_t));
+    vertex_array_object vao = vao_create();
+    vertex_buffer_layout layout = vao_create_layout();
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    vertex_buffer vb = vb_create(vertex_positions, 4 * 2 * sizeof(float));
+    index_buffer_object ibo = create_ibo(vertex_indecies, 6 * sizeof(uint32_t));
+
+    vao_add_element(&layout, 2, GL_FLOAT, sizeof(float) * 2, 0);
+    vao_add_buffer(vb, layout, vao);
     
     uint32_t shader = create_shader("..\\resources\\shaders\\vertex_shader.shader", "..\\resources\\shaders\\fragment_shader.shader");
 
@@ -57,10 +61,10 @@ int32_t CALLBACK WinMain(
     if (location == -1)
         warning(__LINE__, __FILE__, "u_color uniform not found in shader");
 
-    glBindVertexArray(0);
     glUseProgram(0);
-    unbind_vertex_buffer();
-    unbind_index_buffer();
+    vb_unbind();
+    unbind_ibo();
+    vao_unbind();
 
     check_gl_errors();
     info(__LINE__, __FILE__, "program enters while loop");
@@ -72,8 +76,9 @@ int32_t CALLBACK WinMain(
 
         glUseProgram(shader);
         glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
-        glBindVertexArray(vertex_array);
-        bind_index_buffer(&ib);
+        vao_bind(vao);
+        // glBindVertexArray(vao);
+        bind_ibo(&ibo);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         SwapBuffers(hdc);
@@ -89,8 +94,10 @@ int32_t CALLBACK WinMain(
             DispatchMessage(&msg);
         }
     }
-    delete_vertex_buffer(&vb);
-    delete_index_buffer(&ib);
+    vb_delete(&vb);
+    delete_ibo(&ibo);
+    vao_delete_layout(&layout);
+    vao_delete(&vao);
     glDeleteProgram(shader);
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(hglrc);
@@ -112,7 +119,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-void enable_vsync() {
+static void enable_vsync() {
     if (!__wglewSwapIntervalEXT)
         __wglewSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
     if (__wglewSwapIntervalEXT)
@@ -121,7 +128,7 @@ void enable_vsync() {
         warning(__LINE__, __FILE__, "wglSwapIntervalEXT not supported");
 }
 
-void create_window() {
+static void create_window() {
     wc.cbSize = sizeof(wc);
     wc.style = CS_OWNDC;
     wc.lpfnWndProc = WndProc;
@@ -137,7 +144,7 @@ void create_window() {
     ShowWindow(hwnd, SW_SHOW);
 }
 
-HGLRC create_temp_context() {
+static HGLRC create_temp_context() {
     PIXELFORMATDESCRIPTOR pfd = {
         sizeof(PIXELFORMATDESCRIPTOR),
         1,
@@ -163,7 +170,7 @@ HGLRC create_temp_context() {
     return temp_context;
 }
 
-HGLRC create_context() {
+static HGLRC create_context() {
     const int attribs[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
         WGL_CONTEXT_MINOR_VERSION_ARB, 3,

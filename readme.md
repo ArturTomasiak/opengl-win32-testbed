@@ -2,14 +2,18 @@
 
 as of current, my code only renders a square
 
+TODO:
+- rename functions, variables and files for consistency
+- write renderer
+
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
 
-`window` -> WinMain, window handling, main loop and everything that is yet to be abstracted
+`window` -> a header and c file for WinMain, window handling, main loop and everything that is yet to be abstracted
 
-`/vertex` -> vertex buffer, index buffer and TODO vertex_array handling
+`/vertex` -> vertex buffer, index buffer object and vertex_array handling, each in their subsequent c and h files
 
-`/shaders` -> everything related to reading, compiling and linking shaders
+`/shaders` -> a header and c file for everything related to reading, compiling and linking shaders
 
 ### compilation
 My set up consists of:
