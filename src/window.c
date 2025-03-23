@@ -50,21 +50,20 @@ int32_t CALLBACK WinMain(
     vertex_buffer_layout layout = vao_create_layout();
 
     vertex_buffer vb = vb_create(vertex_positions, 4 * 2 * sizeof(float));
-    index_buffer_object ibo = create_ibo(vertex_indecies, 6 * sizeof(uint32_t));
+    index_buffer_object ibo = ibo_create(vertex_indecies, 6 * sizeof(uint32_t));
 
     vao_add_element(&layout, 2, GL_FLOAT, sizeof(float) * 2, 0);
-    vao_add_buffer(vb, layout, vao);
+    vao_add_buffer(&vb, &layout, &vao);
     
-    uint32_t shader = create_shader("..\\resources\\shaders\\vertex_shader.shader", "..\\resources\\shaders\\fragment_shader.shader");
+    shader shader = shader_create(
+        "..\\resources\\shaders\\vertex_shader.shader", 
+        "..\\resources\\shaders\\fragment_shader.shader"
+    );
 
-    int location = glGetUniformLocation(shader, "u_color");
-    if (location == -1)
-        warning(__LINE__, __FILE__, "u_color uniform not found in shader");
-
-    glUseProgram(0);
     vb_unbind();
-    unbind_ibo();
+    ibo_unbind();
     vao_unbind();
+    shader_unbind();
 
     check_gl_errors();
     info(__LINE__, __FILE__, "program enters while loop");
@@ -74,11 +73,10 @@ int32_t CALLBACK WinMain(
     while (running) {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader);
-        glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
-        vao_bind(vao);
-        // glBindVertexArray(vao);
-        bind_ibo(&ibo);
+        shader_bind(&shader);
+        shader_set_uniform4f(&shader, "u_color", 0.2f, 0.3f, 0.8f, 1.0f);
+        vao_bind(&vao);
+        ibo_bind(&ibo);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         SwapBuffers(hdc);
@@ -95,10 +93,10 @@ int32_t CALLBACK WinMain(
         }
     }
     vb_delete(&vb);
-    delete_ibo(&ibo);
+    ibo_delete(&ibo);
     vao_delete_layout(&layout);
     vao_delete(&vao);
-    glDeleteProgram(shader);
+    shader_delete(&shader);
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(hglrc);
     ReleaseDC(hwnd, hdc);

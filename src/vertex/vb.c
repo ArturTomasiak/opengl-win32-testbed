@@ -1,4 +1,4 @@
-#include "vertex_buffer.h"
+#include "vb.h"
 
 vertex_buffer vb_create(const void* data, uint32_t size) {
     vertex_buffer vb;

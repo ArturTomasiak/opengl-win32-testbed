@@ -1,28 +1,48 @@
 #include "shaders.h"
 
-static uint32_t compile_shader(uint32_t type, const char* source);
+static uint32_t shader_compile(uint32_t type, const char* source);
 static char* file_content(const char* location);
+static int32_t get_uniform_location(shader* shader, char* name);
 
-uint32_t create_shader(const char* vertex_shader_path, const char* fragment_shader_path) {
+shader shader_create(const char* vertex_shader_path, const char* fragment_shader_path) {
     char* vertex_shader = file_content(vertex_shader_path);
     char* fragment_shader = file_content(fragment_shader_path);
-    uint32_t program = glCreateProgram();
-    uint32_t vs = compile_shader(GL_VERTEX_SHADER, vertex_shader);
-    uint32_t fs = compile_shader(GL_FRAGMENT_SHADER, fragment_shader);
+    shader shader = {0};
+    shader.cache = NULL;
+    shader.renderer_id = glCreateProgram();
+    uint32_t vs = shader_compile(GL_VERTEX_SHADER, vertex_shader);
+    uint32_t fs = shader_compile(GL_FRAGMENT_SHADER, fragment_shader);
     if (!vs || !fs)
-        return 0;
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
+        return shader;
+    glAttachShader(shader.renderer_id, vs);
+    glAttachShader(shader.renderer_id, fs);
+    glLinkProgram(shader.renderer_id);
+    glValidateProgram(shader.renderer_id);
     glDeleteShader(vs);
     glDeleteShader(fs);
     free(vertex_shader);
     free(fragment_shader);
-    return program;
+    return shader;
 }
 
-static uint32_t compile_shader(uint32_t type, const char* source) {
+void shader_delete(shader* shader) {
+    glDeleteProgram(shader->renderer_id);
+    shader->renderer_id = 0;
+}
+
+void shader_bind(const shader* shader) {
+    glUseProgram(shader->renderer_id);
+}
+
+void shader_unbind() {
+    glUseProgram(0);
+}
+
+void shader_set_uniform4f(shader* shader, char* name, float v0, float v1, float v2, float v3) {
+    glUniform4f(get_uniform_location(shader, name), v0, v1, v2, v3);
+}
+
+static uint32_t shader_compile(uint32_t type, const char* source) {
     uint32_t id = glCreateShader(type);
     glShaderSource(id, 1, &source, 0);
     glCompileShader(id);
@@ -35,7 +55,7 @@ static uint32_t compile_shader(uint32_t type, const char* source) {
         if (message == NULL){
             fatal(__LINE__, __FILE__, "shader compilation and memory allocation failed");
             win32_err(err_allocation_failed);
-            return id;
+            return 0;
         }
         glGetShaderInfoLog(id, length, &length, message);
         glDeleteShader(id);
@@ -73,4 +93,19 @@ static char* file_content(const char* location) {
     buffer[read_size] = '\0';
     fclose(file_pointer);
     return buffer;
+}
+
+static int32_t get_uniform_location(shader* shader, char* name) {
+    for (uint32_t i = 0; i < shader->cache_length; i++)
+        if (shader->cache[i].name == name)
+            return shader->cache[i].location;
+
+    int32_t location = glGetUniformLocation(shader->renderer_id, name);
+    if (location == -1)
+        warning(__LINE__, __FILE__, "uniform does not exist");
+    shader->cache_length++;
+    shader->cache = realloc(shader->cache, sizeof(shader_uniform_cache) * shader->cache_length);
+    shader->cache[shader->cache_length - 1].name = name;
+    shader->cache[shader->cache_length - 1].location = location;
+    return location;
 }
