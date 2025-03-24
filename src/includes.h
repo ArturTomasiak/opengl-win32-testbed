@@ -1,5 +1,7 @@
 #pragma once
 
+#define demidebug
+
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/gl.h>
@@ -26,7 +28,9 @@ enum err_type {
 };
 
 void win32_err(enum err_type err);
+#ifdef demidebug
 void fatal(uint32_t line, char* file, char* message);
 void warning(uint32_t line, char* file, char* message);
 void info(uint32_t line, char* file, char* message);
 void check_gl_errors();
+#endif

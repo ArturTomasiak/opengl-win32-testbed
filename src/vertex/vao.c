@@ -39,7 +39,9 @@ void vao_add_element(vertex_buffer_layout* layout, uint32_t count, uint32_t type
     layout->stride += type_size;
     layout->elements = realloc(layout->elements, sizeof(layout_element) * layout->element_count);
     if (!layout->elements) {
+        #ifdef demidebug
         fatal(__LINE__, __FILE__, "unable to allocate memory in vao_add_element");
+        #endif
         win32_err(err_allocation_failed);
     }
     layout->elements[layout->element_count - 1].count = count;

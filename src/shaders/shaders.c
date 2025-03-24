@@ -2,7 +2,7 @@
 
 static uint32_t shader_compile(uint32_t type, const char* source);
 static char* file_content(const char* location);
-static int32_t get_uniform_location(shader* shader, char* name);
+static int32_t get_uniform_location(shader* shader, const char* name);
 
 shader shader_create(const char* vertex_shader_path, const char* fragment_shader_path) {
     char* vertex_shader = file_content(vertex_shader_path);
@@ -38,7 +38,7 @@ void shader_unbind() {
     glUseProgram(0);
 }
 
-void shader_set_uniform4f(shader* shader, char* name, float v0, float v1, float v2, float v3) {
+void shader_set_uniform4f(shader* shader, const char* name, float v0, float v1, float v2, float v3) {
     glUniform4f(get_uniform_location(shader, name), v0, v1, v2, v3);
 }
 
@@ -53,14 +53,18 @@ static uint32_t shader_compile(uint32_t type, const char* source) {
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         char* message = malloc(length * sizeof(char));
         if (message == NULL){
+            #ifdef demidebug
             fatal(__LINE__, __FILE__, "shader compilation and memory allocation failed");
+            #endif
             win32_err(err_allocation_failed);
             return 0;
         }
         glGetShaderInfoLog(id, length, &length, message);
         glDeleteShader(id);
+        #ifdef demidebug
         printf("%s\n%s", "in file: ", source);
         fatal(__LINE__, __FILE__, message);
+        #endif
         free(message);
         win32_err(err_shader_compilation);
     }
@@ -70,12 +74,14 @@ static uint32_t shader_compile(uint32_t type, const char* source) {
 static char* file_content(const char* location) {
     FILE *file_pointer = fopen(location, "rb");
     if (file_pointer == NULL) {
+        #ifdef demidebug
         char* err = "failed to open file at: ";
         char* full_err = malloc(strlen(err) + strlen(location) + 1);
         strcpy(full_err, err);
         strcat(full_err, location);
         fatal(__LINE__, __FILE__, full_err);
         free(full_err);
+        #endif
         win32_err(err_file_not_found);
         return "\0";
     }
@@ -85,7 +91,9 @@ static char* file_content(const char* location) {
     char *buffer = malloc(file_size + 1);
     if (buffer == NULL) {
         fclose(file_pointer);
+        #ifdef demidebug
         fatal(__LINE__, __FILE__, "memory allocation failed");
+        #endif
         win32_err(err_allocation_failed);
         return "\0";
     }
@@ -95,14 +103,16 @@ static char* file_content(const char* location) {
     return buffer;
 }
 
-static int32_t get_uniform_location(shader* shader, char* name) {
+static int32_t get_uniform_location(shader* shader, const char* name) {
     for (uint32_t i = 0; i < shader->cache_length; i++)
         if (shader->cache[i].name == name)
             return shader->cache[i].location;
 
     int32_t location = glGetUniformLocation(shader->renderer_id, name);
+    #ifdef demidebug
     if (location == -1)
         warning(__LINE__, __FILE__, "uniform does not exist");
+    #endif
     shader->cache_length++;
     shader->cache = realloc(shader->cache, sizeof(shader_uniform_cache) * shader->cache_length);
     shader->cache[shader->cache_length - 1].name = name;

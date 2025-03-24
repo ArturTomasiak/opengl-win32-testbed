@@ -1,5 +1,6 @@
 #include "window.h"
 
+static void unbind_all();
 static void enable_vsync();
 static void create_window();
 static HGLRC create_temp_context();
@@ -25,7 +26,9 @@ int32_t CALLBACK WinMain(
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
+        #ifdef demidebug
         fatal(__LINE__, __FILE__, "could not initialzie glew");
+        #endif
         win32_err(err_glew_initialization);
         ReleaseDC(hwnd, hdc);
         DestroyWindow(hwnd);
@@ -60,30 +63,29 @@ int32_t CALLBACK WinMain(
         "..\\resources\\shaders\\fragment_shader.shader"
     );
 
-    vb_unbind();
-    ibo_unbind();
-    vao_unbind();
-    shader_unbind();
-
+    unbind_all();
+    #ifdef demidebug
     check_gl_errors();
     info(__LINE__, __FILE__, "program enters while loop");
     int i = 0;
+    #endif
     MSG msg;
     _Bool running = 1;
+
     while (running) {
         glClear(GL_COLOR_BUFFER_BIT);
-
         shader_bind(&shader);
         shader_set_uniform4f(&shader, "u_color", 0.2f, 0.3f, 0.8f, 1.0f);
         vao_bind(&vao);
         ibo_bind(&ibo);
-
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         SwapBuffers(hdc);
+        #ifdef demidebug
         if (i < 1) {
             check_gl_errors();
             i++;
         }
+        #endif
         while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) {
                 running = 0;
@@ -117,13 +119,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
+static void unbind_all() {
+    vb_unbind();
+    ibo_unbind();
+    vao_unbind();
+    shader_unbind();
+}
+
 static void enable_vsync() {
     if (!__wglewSwapIntervalEXT)
         __wglewSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
     if (__wglewSwapIntervalEXT)
         __wglewSwapIntervalEXT(1);
+    #ifdef demidebug
     else
         warning(__LINE__, __FILE__, "wglSwapIntervalEXT not supported");
+    #endif
 }
 
 static void create_window() {
@@ -177,7 +188,10 @@ static HGLRC create_context() {
     };
     HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
     if (!hglrc) {
+        #ifdef demidebug
         fatal(__LINE__, __FILE__, "Failed to create OpenGL 3.3+ core profile context");
+        #endif
+        win32_err(err_opengl_context);
         ReleaseDC(hwnd, hdc);
         DestroyWindow(hwnd);
         ExitProcess(0);

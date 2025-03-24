@@ -23,6 +23,8 @@ void win32_err(enum err_type err) {
     ExitProcess(-1);
 }
 
+#ifdef demidebug
+
 static const DWORD red    = FOREGROUND_RED | FOREGROUND_INTENSITY;
 static const DWORD green  = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 static const DWORD orange = FOREGROUND_RED | FOREGROUND_GREEN;
@@ -88,3 +90,5 @@ void check_gl_errors() {
         printf("%s%d%s\n", " (", error, ")");
     }
 }
+
+#endif
