@@ -16,7 +16,6 @@
 #endif
 
 #include <stdint.h>
-#include <stdio.h>
 
 // error.c
 enum err_type {
@@ -29,6 +28,7 @@ enum err_type {
 
 void win32_err(enum err_type err);
 #ifdef demidebug
+#include <stdio.h>
 void fatal(uint32_t line, char* file, char* message);
 void warning(uint32_t line, char* file, char* message);
 void info(uint32_t line, char* file, char* message);

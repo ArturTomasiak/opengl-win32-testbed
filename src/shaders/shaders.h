@@ -1,5 +1,9 @@
 #pragma once
 #include "../includes.h"
+#include "string.h"
+#ifndef demidebug
+#include <stdio.h>
+#endif
 
 typedef struct {
     int32_t location;

@@ -17,3 +17,5 @@ My set up consists of:
 2. add mingw's bin to path
 
 `build.bat` to compile
+
+delete `#define demidebug` from includes and add `-mwindows` flag to build.bat for release mode
