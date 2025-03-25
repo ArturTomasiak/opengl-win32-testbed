@@ -1,15 +1,21 @@
 ## testbed
 
-as of current, my code only renders a square
+as of current, my code renders a textured rectangle
 
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
 
-`window` -> a header and c file for WinMain, window handling, main loop and everything that is yet to be abstracted
+`window` -> a header and c file for WinMain, window handling and main loop
 
-`/vertex` -> vertex buffer, index buffer object and vertex array object handling, each in their subsequent c and h files
+`/dependencies` -> code not written by me; as of current, it only contains stb_image
+
+`/renderer` -> a header and c file for drawing to screen
 
 `/shaders` -> a header and c file for everything related to reading, compiling and linking shaders
+
+`/texture` -> changing png files to usable textures
+
+`/vertex` -> vertex buffer, index buffer object and vertex array object handling, each in their subsequent c and h files
 
 ### compilation
 My set up consists of:

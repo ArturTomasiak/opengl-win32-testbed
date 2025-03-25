@@ -36,7 +36,7 @@ void vao_delete_layout(vertex_buffer_layout* layout) {
 
 void vao_add_element(vertex_buffer_layout* layout, uint32_t count, uint32_t type, uint32_t type_size, _Bool normalized) {
     layout->element_count++;
-    layout->stride += type_size;
+    layout->stride += count * type_size;
     layout->elements = realloc(layout->elements, sizeof(layout_element) * layout->element_count);
     if (!layout->elements) {
         #ifdef demidebug

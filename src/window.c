@@ -38,24 +38,27 @@ int32_t CALLBACK WinMain(
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
     
-    float vertex_positions[8] = {
-        -0.5f, -0.5f, 
-        0.5f,  -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f
+    float vertex_positions[16] = {
+        -0.5f, -0.5f, 0.0f, 0.0f, 
+        0.5f,  -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f
     };    
     uint32_t vertex_indecies[6] = {
         0, 1, 2,
         2, 3, 0
     };
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     vertex_array_object vao = vao_create();
     vertex_buffer_layout layout = vao_create_layout();
 
-    vertex_buffer vb = vb_create(vertex_positions, 4 * 2 * sizeof(float));
+    vertex_buffer vb = vb_create(vertex_positions, 4 * 4 * sizeof(float));
     index_buffer_object ibo = ibo_create(vertex_indecies, 6);
 
-    vao_add_element(&layout, 2, GL_FLOAT, sizeof(float) * 2, 0);
+    vao_add_element(&layout, 2, GL_FLOAT, sizeof(float), 0);   
+    vao_add_element(&layout, 2, GL_FLOAT, sizeof(float), 0);
     vao_add_buffer(&vb, &layout, &vao);
     
     shader shader = shader_create(
@@ -63,11 +66,13 @@ int32_t CALLBACK WinMain(
         "..\\resources\\shaders\\fragment_shader.shader"
     );
 
+    texture texture = texture_create("..\\resources\\textures\\test.png");
+    texture_bind(0, &texture);
+
     unbind_all();
     #ifdef demidebug
     check_gl_errors();
     info(__LINE__, __FILE__, "program enters while loop");
-    int i = 0;
     #endif
     MSG msg;
     _Bool running = 1;
@@ -75,14 +80,12 @@ int32_t CALLBACK WinMain(
     while (running) {
         glClear(GL_COLOR_BUFFER_BIT);
         shader_bind(&shader);
-        shader_set_uniform4f(&shader, "u_color", 0.2f, 0.3f, 0.8f, 1.0f);
+        texture_bind(0, &texture);
+        shader_set_uniform1i(&shader, "u_texture", 0);
         renderer_draw(&vao, &ibo);
         SwapBuffers(hdc);
         #ifdef demidebug
-        if (i < 1) {
-            check_gl_errors();
-            i++;
-        }
+        check_gl_errors();
         #endif
         while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) {
@@ -122,6 +125,7 @@ static void unbind_all() {
     ibo_unbind();
     vao_unbind();
     shader_unbind();
+    texture_unbind();
 }
 
 static void enable_vsync() {

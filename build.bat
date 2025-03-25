@@ -11,7 +11,7 @@ for /R src %%f in (*.c) do (
 
 set INCLUDES=-I"C:\glew-2.1.0\include"
 set LIBRARIES=-L"C:\glew-2.1.0\lib\Release\x64"
-set FLAGS=-lopengl32 -lglew32 -lgdi32 -Wall
+set FLAGS=-lopengl32 -lglew32 -lgdi32 -Wall -Werror
 
 where %COMPILER% >nul 2>&1
 if %errorlevel% neq 0 (
@@ -28,5 +28,4 @@ if %errorlevel% neq 0 (
 )
   
 echo Compilation successful! Run .\%OUTPUT% to execute.
-
 endlocal

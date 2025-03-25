@@ -1,4 +1,4 @@
-#include "shaders.h"
+#include "shader.h"
 
 static uint32_t shader_compile(uint32_t type, const char* source);
 static char* file_content(const char* location);
@@ -36,6 +36,14 @@ void shader_bind(const shader* shader) {
 
 void shader_unbind() {
     glUseProgram(0);
+}
+
+void shader_set_uniform1i(shader* shader, const char* name, int32_t value) {
+    glUniform1i(get_uniform_location(shader, name), value);
+}
+
+void shader_set_uniform1f(shader* shader, const char* name, float value) {
+    glUniform1f(get_uniform_location(shader, name), value);
 }
 
 void shader_set_uniform4f(shader* shader, const char* name, float v0, float v1, float v2, float v3) {

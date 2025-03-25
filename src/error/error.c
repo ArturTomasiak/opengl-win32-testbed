@@ -24,7 +24,6 @@ void win32_err(enum err_type err) {
 }
 
 #ifdef demidebug
-
 static const DWORD red    = FOREGROUND_RED | FOREGROUND_INTENSITY;
 static const DWORD green  = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 static const DWORD orange = FOREGROUND_RED | FOREGROUND_GREEN;
