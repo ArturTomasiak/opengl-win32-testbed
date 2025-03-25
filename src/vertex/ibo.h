@@ -3,6 +3,7 @@
 
 typedef struct {
     uint32_t renderer_id;
+    uint32_t count;
 } index_buffer_object;
 
 index_buffer_object ibo_create(const void* data, uint32_t size);

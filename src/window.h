@@ -3,6 +3,7 @@
 #include "vertex/ibo.h"
 #include "vertex/vao.h"
 #include "shaders/shaders.h"
+#include "renderer/renderer.h"
 
 int32_t CALLBACK WinMain(HINSTANCE hinstance, HINSTANCE h_prev_instance, LPSTR lp_cmd_line, int32_t n_cmd_show);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

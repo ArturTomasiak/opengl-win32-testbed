@@ -53,7 +53,7 @@ int32_t CALLBACK WinMain(
     vertex_buffer_layout layout = vao_create_layout();
 
     vertex_buffer vb = vb_create(vertex_positions, 4 * 2 * sizeof(float));
-    index_buffer_object ibo = ibo_create(vertex_indecies, 6 * sizeof(uint32_t));
+    index_buffer_object ibo = ibo_create(vertex_indecies, 6);
 
     vao_add_element(&layout, 2, GL_FLOAT, sizeof(float) * 2, 0);
     vao_add_buffer(&vb, &layout, &vao);
@@ -76,9 +76,7 @@ int32_t CALLBACK WinMain(
         glClear(GL_COLOR_BUFFER_BIT);
         shader_bind(&shader);
         shader_set_uniform4f(&shader, "u_color", 0.2f, 0.3f, 0.8f, 1.0f);
-        vao_bind(&vao);
-        ibo_bind(&ibo);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        renderer_draw(&vao, &ibo);
         SwapBuffers(hdc);
         #ifdef demidebug
         if (i < 1) {

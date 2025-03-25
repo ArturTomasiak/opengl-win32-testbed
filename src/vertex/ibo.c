@@ -2,9 +2,10 @@
 
 index_buffer_object ibo_create(const void* data, uint32_t size) {
     index_buffer_object ibo;
+    ibo.count = size;
     glGenBuffers(1, &ibo.renderer_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo.renderer_id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(uint32_t), data, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size * sizeof(uint32_t), data, GL_STATIC_DRAW);
     return ibo;
 }
 
