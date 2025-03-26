@@ -25,8 +25,8 @@ enum err_type {
     err_shader_compilation,
     err_opengl_context
 };
-
 void win32_err(enum err_type err);
+
 #ifdef demidebug
 #include <stdio.h>
 void fatal(uint32_t line, char* file, char* message);

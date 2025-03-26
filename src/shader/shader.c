@@ -113,7 +113,7 @@ static char* file_content(const char* location) {
 
 static int32_t get_uniform_location(shader* shader, const char* name) {
     for (uint32_t i = 0; i < shader->cache_length; i++)
-        if (strcmp(shader->cache[i].name, name))
+        if (strcmp(shader->cache[i].name, name) == 0)
             return shader->cache[i].location;
 
     int32_t location = glGetUniformLocation(shader->renderer_id, name);

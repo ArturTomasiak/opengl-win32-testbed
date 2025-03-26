@@ -14,8 +14,9 @@ static HINSTANCE hinstance;
 static WNDCLASSEX wc = {0};
 static HWND hwnd;
 static HDC hdc;
-static const uint32_t width = 640;
-static const uint32_t height = 480;
+static const uint16_t width = 640;
+static const uint16_t height = 480;
+static const float aspect_ratio = (float)height / (float)width;
 
 int32_t CALLBACK WinMain(
     HINSTANCE hinstance,
@@ -43,12 +44,11 @@ int32_t CALLBACK WinMain(
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
     
-    float arp = (float)height / (float)width; // aspect ratio proportion
     float vertex_positions[16] = {
-        -0.5f * arp, -0.5f, 0.0f, 0.0f, 
-         0.5f * arp, -0.5f, 1.0f, 0.0f, 
-         0.5f * arp,  0.5f, 1.0f, 1.0f, 
-        -0.5f * arp,  0.5f, 0.0f, 1.0f
+        -0.5f, -0.5f, 0.0f, 0.0f, 
+         0.5f, -0.5f, 1.0f, 0.0f, 
+         0.5f,  0.5f, 1.0f, 1.0f, 
+        -0.5f,  0.5f, 0.0f, 1.0f
     };    
     uint32_t vertex_indecies[6] = {
         0, 1, 2,
@@ -89,6 +89,7 @@ int32_t CALLBACK WinMain(
         shader_bind(&shader);
         texture_bind(0, &texture);
         shader_set_uniform1i(&shader, "u_texture", 0);
+        shader_set_uniform1f(&shader, "u_aspect_ratio", aspect_ratio);
         renderer_draw(&vao, &ibo);
         SwapBuffers(hdc);
         #ifdef demidebug
