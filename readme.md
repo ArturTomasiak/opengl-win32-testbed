@@ -1,6 +1,6 @@
 ## testbed
 
-as of current, my code renders a textured rectangle
+as of current, my code renders a textured square
 
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`

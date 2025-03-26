@@ -3,15 +3,19 @@
 static void unbind_all();
 static void enable_vsync();
 static void create_window();
+static void check_resources();
 static HGLRC create_temp_context();
 static HGLRC create_context();
 
+static const char* application_icon = "..\\resources\\icons\\test.ico";
 static const char* application_name = "Demi";
 static const char* wc_class_name = "Demi";
 static HINSTANCE hinstance;
 static WNDCLASSEX wc = {0};
 static HWND hwnd;
 static HDC hdc;
+static const uint32_t width = 640;
+static const uint32_t height = 480;
 
 int32_t CALLBACK WinMain(
     HINSTANCE hinstance,
@@ -19,6 +23,7 @@ int32_t CALLBACK WinMain(
     LPSTR lp_cmd_line,
     int32_t n_cmd_show 
 ) {
+    check_resources();
     create_window();
     hdc = GetDC(hwnd);
     HGLRC temp_context = create_temp_context();
@@ -38,17 +43,19 @@ int32_t CALLBACK WinMain(
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
     
+    float arp = (float)height / (float)width; // aspect ratio proportion
     float vertex_positions[16] = {
-        -0.5f, -0.5f, 0.0f, 0.0f, 
-        0.5f,  -0.5f, 1.0f, 0.0f,
-        0.5f, 0.5f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.0f, 1.0f
+        -0.5f * arp, -0.5f, 0.0f, 0.0f, 
+         0.5f * arp, -0.5f, 1.0f, 0.0f, 
+         0.5f * arp,  0.5f, 1.0f, 1.0f, 
+        -0.5f * arp,  0.5f, 0.0f, 1.0f
     };    
     uint32_t vertex_indecies[6] = {
         0, 1, 2,
         2, 3, 0
     };
 
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     vertex_array_object vao = vao_create();
@@ -114,7 +121,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             break;
         case WM_KEYDOWN:
             if (wParam == 'W')
-                Sleep(10000);
+                Sleep(100);
             break;
     }
     return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -145,14 +152,25 @@ static void create_window() {
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hinstance;
     wc.lpszClassName = wc_class_name;
+    wc.hIcon = (HICON)LoadImage(hinstance, application_icon, IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+    wc.hIconSm = (HICON)LoadImage(hinstance, application_icon, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     RegisterClassEx(&wc);
     hwnd = CreateWindowEx(
         0, wc_class_name, application_name, 
         WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 
-        200, 200, 640, 480, 0, 0, hinstance, 0 
+        200, 200, width, height, 0, 0, hinstance, 0 
     );
     ShowWindow(hwnd, SW_SHOW);
+}
+
+static void check_resources() {
+    DWORD attributes = GetFileAttributesA(application_icon);
+    if (attributes == INVALID_FILE_ATTRIBUTES || attributes & FILE_ATTRIBUTE_DIRECTORY)
+        win32_err(err_file_not_found);
+    attributes = GetFileAttributesA("..\\resources\\textures\\test.png");
+    if (attributes == INVALID_FILE_ATTRIBUTES || attributes & FILE_ATTRIBUTE_DIRECTORY)
+        win32_err(err_file_not_found);
 }
 
 static HGLRC create_temp_context() {
