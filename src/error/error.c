@@ -18,6 +18,8 @@ void win32_err(enum err_type err) {
         case err_opengl_context:
             error = "failed to create opengl context";
             break;
+        case err_file_not_png:
+            error = "file expected to be png is a different format";
     }
     MessageBox(NULL, error, "Error", MB_ICONERROR | MB_OK);
     ExitProcess(-1);

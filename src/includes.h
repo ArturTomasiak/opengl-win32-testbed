@@ -23,7 +23,8 @@ enum err_type {
     err_file_not_found,
     err_glew_initialization,
     err_shader_compilation,
-    err_opengl_context
+    err_opengl_context,
+    err_file_not_png
 };
 void win32_err(enum err_type err);
 
