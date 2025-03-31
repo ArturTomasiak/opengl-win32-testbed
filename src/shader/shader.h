@@ -23,6 +23,7 @@ void shader_unbind();
 void shader_set_uniform1i(shader* shader, const char* name, int32_t value);
 void shader_set_uniform1f(shader* shader, const char* name, float value);
 void shader_set_uniform4f(shader* shader, const char* name, float v0, float v1, float v2, float v3);
+void shader_set_uniformmat4f(shader* shader, const char* name, float* matrix);
 
 // static classes
 // char* file_content(const char* location);

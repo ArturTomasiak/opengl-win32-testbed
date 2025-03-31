@@ -5,6 +5,7 @@
 #include "shader/shader.h"
 #include "texture/texture.h"
 #include "renderer/renderer.h"
+#include "projection_matrix/projection.h"
 
 int32_t CALLBACK WinMain(HINSTANCE hinstance, HINSTANCE h_prev_instance, LPSTR lp_cmd_line, int32_t n_cmd_show);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

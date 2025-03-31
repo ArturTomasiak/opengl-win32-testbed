@@ -50,6 +50,10 @@ void shader_set_uniform4f(shader* shader, const char* name, float v0, float v1, 
     glUniform4f(get_uniform_location(shader, name), v0, v1, v2, v3);
 }
 
+void shader_set_uniformmat4f(shader* shader, const char* name, float* matrix) {
+    glUniformMatrix4fv(get_uniform_location(shader, name), 1, GL_FALSE, matrix);
+}
+
 static uint32_t shader_compile(uint32_t type, const char* source) {
     uint32_t id = glCreateShader(type);
     glShaderSource(id, 1, &source, 0);

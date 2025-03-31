@@ -2,14 +2,10 @@
 
 as of current, my code renders a textured square
 
-TODO: delete dependencies and replace them with libpng
-
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
 
 `window` -> a header and c file for WinMain, window handling and main loop
-
-`/dependencies` -> code not written by me; as of current, it only contains stb_image
 
 `/renderer` -> a header and c file for drawing to screen
 

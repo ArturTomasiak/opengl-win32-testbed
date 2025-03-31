@@ -18,7 +18,7 @@ texture texture_create(const char* file_path) {
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_infop info = png_create_info_struct(png);
     if (!png || !info) {
-        warning(__LINE__, __FILE__, "png.h create struct functions failed");
+        win32_err(err_libpng_fail);
         fclose(file_pointer);
         return texture;
     }
@@ -53,10 +53,12 @@ texture texture_create(const char* file_path) {
     fclose(file_pointer);
     png_destroy_read_struct(&png, &info, NULL);
     free(row_pointers);
+
     texture.width = width;
     texture.height = height;
     texture.bits_per_pixel = 32;
     texture.local_buffer = buffer;
+
     glGenTextures(1, &texture.renderer_id);
     glBindTexture(GL_TEXTURE_2D, texture.renderer_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

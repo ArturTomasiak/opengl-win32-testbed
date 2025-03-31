@@ -14,9 +14,11 @@ static HINSTANCE hinstance;
 static WNDCLASSEX wc = {0};
 static HWND hwnd;
 static HDC hdc;
-static const uint16_t width = 640;
-static const uint16_t height = 480;
-static const float aspect_ratio = (float)height / (float)width;
+static const float width = 640.0f;
+static const float height = 480.0f;
+static const float aspect_ratio = height / width;
+static const float virtual_height = 100.0f;
+static const float virtual_width = 100.0f;
 
 int32_t CALLBACK WinMain(
     HINSTANCE hinstance,
@@ -44,12 +46,13 @@ int32_t CALLBACK WinMain(
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
     
+    // my code logic is so that the screen ranges are 0 to 100 as far as vertex positions are concerned
     float vertex_positions[16] = {
-        -0.5f, -0.5f, 0.0f, 0.0f, 
-         0.5f, -0.5f, 1.0f, 0.0f, 
-         0.5f,  0.5f, 1.0f, 1.0f, 
-        -0.5f,  0.5f, 0.0f, 1.0f
-    };    
+        10.0f, 10.0f, 0.0f, 0.0f,
+        30.0f, 10.0f, 1.0f, 0.0f,
+        30.0f, 30.0f, 1.0f, 1.0f,
+        10.0f, 30.0f, 0.0f, 1.0f
+    };
     uint32_t vertex_indecies[6] = {
         0, 1, 2,
         2, 3, 0
@@ -76,6 +79,11 @@ int32_t CALLBACK WinMain(
     texture texture = texture_create("..\\resources\\textures\\test.png");
     texture_bind(0, &texture);
 
+    shader_bind(&shader);
+    float* projection = orthographic_matrix(0.0f, virtual_width, 0.0f, virtual_height * aspect_ratio, -1.0f, 1.0f);
+    shader_set_uniformmat4f(&shader, "u_mvp", projection);
+    free(projection);
+
     unbind_all();
     #ifdef demidebug
     check_gl_errors();
@@ -89,7 +97,6 @@ int32_t CALLBACK WinMain(
         shader_bind(&shader);
         texture_bind(0, &texture);
         shader_set_uniform1i(&shader, "u_texture", 0);
-        shader_set_uniform1f(&shader, "u_aspect_ratio", aspect_ratio);
         renderer_draw(&vao, &ibo);
         SwapBuffers(hdc);
         #ifdef demidebug

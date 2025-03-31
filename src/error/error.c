@@ -20,9 +20,13 @@ void win32_err(enum err_type err) {
             break;
         case err_file_not_png:
             error = "file expected to be png is a different format";
+            break;
+        case err_libpng_fail:
+            error = "libpng struct creation functions failed";
+            break;
     }
     MessageBox(NULL, error, "Error", MB_ICONERROR | MB_OK);
-    ExitProcess(-1);
+    PostQuitMessage(0);
 }
 
 #ifdef demidebug
