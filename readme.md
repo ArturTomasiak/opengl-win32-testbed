@@ -7,17 +7,15 @@ as of current, my code renders a textured square that can move with wsad
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
 
-`window` -> a header and c file for WinMain, window handling and main loop
+`window` -> a header and c file for WinMain, window handling and rendering
 
-`/renderer` -> a header and c file for drawing to screen
+`/math` -> functions for handling with matricies
 
 `/shaders` -> a header and c file for everything related to reading, compiling and linking shaders
 
 `/texture` -> changing png files to usable textures
 
 `/vertex` -> vertex buffer, index buffer object and vertex array object handling, each in their subsequent c and h files
-
-`/math` -> functions for handling with matricies
 
 ### compilation
 my set up consists of:
