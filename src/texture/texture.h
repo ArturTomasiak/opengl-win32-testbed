@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../includes.h"
-#include "../renderer/renderer.h"
-
 typedef struct {
     uint32_t renderer_id;
     const char* file_path;

@@ -10,15 +10,18 @@ static HGLRC create_context();
 static const char* application_icon = "..\\resources\\icons\\test.ico";
 static const char* application_name = "Demi";
 static const char* wc_class_name = "Demi";
+static _Bool key_states[256] = {0};
+static _Bool resized = 0;
 static HINSTANCE hinstance;
 static WNDCLASSEX wc = {0};
 static HWND hwnd;
 static HDC hdc;
-static const float width = 640.0f;
-static const float height = 480.0f;
-static const float aspect_ratio = height / width;
-static const float virtual_height = 100.0f;
-static const float virtual_width = 100.0f;
+static float width = 960.0f;
+static float height = 540.0f;
+static float old_width;
+static float old_height;
+static float aspect_ratio;
+
 
 int32_t CALLBACK WinMain(
     HINSTANCE hinstance,
@@ -46,12 +49,11 @@ int32_t CALLBACK WinMain(
     HGLRC hglrc = create_context();
     wglDeleteContext(temp_context);
     
-    // my code logic is so that the screen ranges are 0 to 100 as far as vertex positions are concerned
     float vertex_positions[16] = {
-        10.0f, 10.0f, 0.0f, 0.0f,
-        30.0f, 10.0f, 1.0f, 0.0f,
-        30.0f, 30.0f, 1.0f, 1.0f,
-        10.0f, 30.0f, 0.0f, 1.0f
+        0.0f, 0.0f, 0.0f, 0.0f,
+        100.0f, 0.0f, 1.0f, 0.0f,
+        100.0f, 100.0f, 1.0f, 1.0f,
+        0.0f, 100.0f, 0.0f, 1.0f
     };
     uint32_t vertex_indecies[6] = {
         0, 1, 2,
@@ -79,10 +81,14 @@ int32_t CALLBACK WinMain(
     texture texture = texture_create("..\\resources\\textures\\test.png");
     texture_bind(0, &texture);
 
-    shader_bind(&shader);
-    float* projection = orthographic_matrix(0.0f, virtual_width, 0.0f, virtual_height * aspect_ratio, -1.0f, 1.0f);
-    shader_set_uniformmat4f(&shader, "u_mvp", projection);
-    free(projection);
+    float* projection = calloc(16, sizeof(float));
+    float* model = calloc(16, sizeof(float));
+    float* translate = calloc(16, sizeof(float));
+    float* mvp = calloc(16, sizeof(float));
+    if (!projection || !model || !translate || !mvp) {
+        win32_err(err_allocation_failed);
+        goto cleanup;
+    }
 
     unbind_all();
     #ifdef demidebug
@@ -91,13 +97,42 @@ int32_t CALLBACK WinMain(
     #endif
     MSG msg;
     _Bool running = 1;
+    uint16_t player_x = 0;
+    uint16_t player_y = 0;
+
+    aspect_ratio = width / height;
+    if (aspect_ratio >= 1.0f)
+        orthographic_matrix(projection, 0.0f, width, 0.0f, width / aspect_ratio, -1.0f, 1.0f);
+    else
+        orthographic_matrix(projection, 0.0f, height * aspect_ratio, 0.0f, height, -1.0f, 1.0f);
+    glViewport(0, 0, width, height);
 
     while (running) {
+        if (key_states['W'] && player_y < height - 100.0f) player_y += 5;
+        if (key_states['S'] && player_y > 0) player_y -= 5;
+        if (key_states['D'] && player_x < width - 100.0f) player_x += 5;
+        if (key_states['A'] && player_x > 0) player_x -= 5;
+
+        if (resized) {
+            aspect_ratio = width / height;
+            if (aspect_ratio >= 1.0f)
+                orthographic_matrix(projection, 0.0f, width, 0.0f, width / aspect_ratio, -1.0f, 1.0f);
+            else
+                orthographic_matrix(projection, 0.0f, height * aspect_ratio, 0.0f, height, -1.0f, 1.0f);
+            glViewport(0, 0, width, height);
+            resized = 0;
+        }
+
         glClear(GL_COLOR_BUFFER_BIT);
         shader_bind(&shader);
+        translate_matrix(model, player_x, player_y, 0);
+        multiply_f4x4(mvp, projection, model);
+        shader_set_uniformmat4f(&shader, "u_mvp", mvp);
         texture_bind(0, &texture);
         shader_set_uniform1i(&shader, "u_texture", 0);
-        renderer_draw(&vao, &ibo);
+        vao_bind(&vao);
+        ibo_bind(&ibo);
+        glDrawElements(GL_TRIANGLES, ibo.count, GL_UNSIGNED_INT, 0);
         SwapBuffers(hdc);
         #ifdef demidebug
         check_gl_errors();
@@ -110,6 +145,11 @@ int32_t CALLBACK WinMain(
             DispatchMessage(&msg);
         }
     }
+    cleanup:
+    free(projection);
+    free(model);
+    free(translate);
+    free(mvp);
     vb_delete(&vb);
     ibo_delete(&ibo);
     vao_delete_layout(&layout);
@@ -128,8 +168,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             PostQuitMessage(0);
             break;
         case WM_KEYDOWN:
-            if (wParam == 'W')
-                Sleep(100);
+            if (wParam < 256)
+                key_states[wParam] = 1;
+            break;
+        case WM_KEYUP:
+            if (wParam < 256)
+                key_states[wParam] = 0;
+            break;
+        case WM_SIZE:
+            old_width = width;
+            old_height = height;
+            width = (float)LOWORD(lParam);
+            height = (float)HIWORD(lParam);
+            if (height == 0) height = 1;
+            resized = 1;
             break;
     }
     return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -166,7 +218,7 @@ static void create_window() {
     RegisterClassEx(&wc);
     hwnd = CreateWindowEx(
         0, wc_class_name, application_name, 
-        WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 
+        WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX | WS_SYSMENU, 
         200, 200, width, height, 0, 0, hinstance, 0 
     );
     ShowWindow(hwnd, SW_SHOW);

@@ -26,7 +26,7 @@ void win32_err(enum err_type err) {
             break;
     }
     MessageBox(NULL, error, "Error", MB_ICONERROR | MB_OK);
-    PostQuitMessage(0);
+    PostQuitMessage(-1);
 }
 
 #ifdef demidebug

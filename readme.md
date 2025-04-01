@@ -1,6 +1,6 @@
 ## testbed
 
-as of current, my code renders a textured square
+as of current, my code renders a textured square that can move with wsad
 
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
@@ -14,6 +14,8 @@ as of current, my code renders a textured square
 `/texture` -> changing png files to usable textures
 
 `/vertex` -> vertex buffer, index buffer object and vertex array object handling, each in their subsequent c and h files
+
+`/math` -> functions for handling with matricies
 
 ### compilation
 my set up consists of:
