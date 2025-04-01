@@ -2,6 +2,8 @@
 
 as of current, my code renders a textured square that can move with wsad
 
+![gif](https://github.com/user-attachments/assets/241dd16e-05aa-4c1c-b0f6-2e315991190d)
+
 ### src structure
 `includes` -> includes, debugging and errors, the latter two of which are implemented in `/error/error.c`
 
